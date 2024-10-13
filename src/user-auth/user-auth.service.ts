@@ -8,7 +8,7 @@ export class UserAuthService {
   }
 
   signin() {
-    return 'sign in';
+    return 'بتول ميو';
   }
 
   signup() {

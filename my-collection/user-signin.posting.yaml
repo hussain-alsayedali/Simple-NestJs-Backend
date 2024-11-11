@@ -1,0 +1,3 @@
+name: user signin
+method: POST
+url: http://localhost:3333/user-auth/signin

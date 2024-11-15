@@ -6,7 +6,7 @@ import { emit } from 'process';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
+export class JwtAdminStrategy extends PassportStrategy(Strategy, 'jwt-admin') {
   constructor(
     config: ConfigService,
     private prisma: PrismaService,
@@ -17,13 +17,13 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
   }
   async validate(payload: { sub: string; email: string; role: string }) {
-    if (payload.role != 'user') return null;
-    const user = await this.prisma.user.findUnique({
+    if (payload.role != 'admin') return null;
+    const admin = await this.prisma.admin.findUnique({
       where: {
         email: payload.email,
       },
     });
-    delete user.password;
-    return user;
+    delete admin.password;
+    return admin;
   }
 }

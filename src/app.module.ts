@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
-import { AuthModule } from './user-auth/user-auth.module';
+import { UserAuthModule } from './user-auth/user-auth.module';
 import { UserModule } from './user/user.module';
 import { AdminModule } from './admin/admin.module';
 import { TodoModule } from './todo/todo.module';
@@ -11,7 +11,7 @@ import { PrismaModule } from './prisma/prisma.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    AuthModule,
+    UserAuthModule,
     UserModule,
     AdminModule,
     TodoModule,

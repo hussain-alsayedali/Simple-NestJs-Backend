@@ -6,6 +6,7 @@ import * as pactum from 'pactum';
 import { SigninDto, SignupDto } from 'src/user-auth/dto';
 import { EditUserDto } from 'src/user/dto';
 import { CreateTodoDto, EditTodoDto } from 'src/todo/dto';
+import { AuthDto } from 'src/admin-auth/dto';
 describe('app e2e', () => {
   let app: INestApplication;
   let prisma: PrismaService;
@@ -80,12 +81,105 @@ describe('app e2e', () => {
       });
     });
   });
-
-  describe('Admin', () => {
-    describe('delete user', () => {});
-    describe('delete todo', () => {});
+  describe('Admin-auth', () => {
+    it('Sign up', () => {
+      const dto: AuthDto = {
+        email: 'he312@gmail.com',
+        password: '123456789',
+      };
+      return pactum
+        .spec()
+        .post('/admin-auth/signup')
+        .withBody(dto)
+        .expectStatus(201);
+    });
+    it('Sign in', () => {
+      const dto: AuthDto = {
+        email: 'he312@gmail.com',
+        password: '123456789',
+      };
+      return pactum
+        .spec()
+        .post('/admin-auth/signin')
+        .withBody(dto)
+        .expectStatus(200)
+        .stores('adminAt', 'access_token');
+    });
   });
+  describe('Additional user and todo for admin to delete', () => {
+    it('Sign up another user', () => {
+      const dto: SignupDto = {
+        email: 'anotheruser@gmail.com',
+        password: '123456789',
+        firstName: 'another',
+        lastName: 'user',
+      };
+      return pactum
+        .spec()
+        .post('/user-auth/signup')
+        .withBody(dto)
+        .expectStatus(201)
+        .stores('userIdToDelete', 'id');
+    });
 
+    it('Sign in another user', () => {
+      const dto: SigninDto = {
+        email: 'anotheruser@gmail.com',
+        password: '123456789',
+      };
+      return pactum
+        .spec()
+        .post('/user-auth/signin')
+        .withBody(dto)
+        .expectStatus(200)
+        .stores('anotherUserAt', 'access_token');
+    });
+    it('Get another user id', () => {
+      return pactum
+        .spec()
+        .get('/users/me')
+        .withBearerToken(`$S{anotherUserAt}`)
+        .expectStatus(200)
+        .stores('userIdToDelete', 'id');
+    });
+
+    it('Create another todo', () => {
+      const dto: CreateTodoDto = {
+        title: 'Second Todo',
+        description: 'This is another todo',
+      };
+      return pactum
+        .spec()
+        .post('/todos')
+        .withBearerToken(`$S{anotherUserAt}`)
+        .withBody(dto)
+        .expectStatus(201)
+        .stores('todoIdToDelete', 'id');
+    });
+  });
+  describe('Admin', () => {
+    describe('delete user', () => {
+      it('should delete a user', () => {
+        return pactum
+          .spec()
+          .delete('/admin/user/{id}')
+          .withPathParams('id', '$S{userIdToDelete}')
+          .withBearerToken(`$S{adminAt}`)
+          .expectStatus(204);
+      });
+    });
+
+    describe('delete todo', () => {
+      it('should delete a todo', () => {
+        return pactum
+          .spec()
+          .delete('/admin/todo/{id}')
+          .withPathParams('id', '$S{todoIdToDelete}')
+          .withBearerToken(`$S{adminAt}`)
+          .expectStatus(204);
+      });
+    });
+  });
   describe('Todo', () => {
     describe('Get empty todos', () => {
       it('should get empty todos', () => {
